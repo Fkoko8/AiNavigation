@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Navigators | Zwiększ Zyski dzięki AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #050508;
+            --bg-card: rgba(20, 20, 25, 0.6);
+            --primary: #00F0FF; /* Neon Cyan */
+            --secondary: #7000FF; /* Deep Neon Purple */
+            --accent: #FF0055; /* Alert Red/Pink */
+            --success: #00FF99; /* Green for success */
+            --text-main: #ffffff;
+            --text-muted: #a0a0b0;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .brand, .number-display, .badge { font-family: 'Space Grotesk', sans-serif; }
+
+        /* --- Canvas Background --- */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .brand { font-size: 1.3rem; font-weight: 700; letter-spacing: -1px; display: flex; align-items: center; gap: 12px; }
+        .brand span { color: var(--primary); }
+        .logo-img { height: 65px; width: auto; transition: 0.4s ease; }
+        .logo-img:hover { filter: drop-shadow(0 0 15px var(--primary)); transform: scale(1.05); }
+
+        .nav-btn {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+
+        /* --- Utilities --- */
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .highlight { color: var(--accent); }
+
+        /* --- Hero Section --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8rem 1rem 4rem 1rem;
+            position: relative;
+        }
+
+        .badge {
+            background: rgba(112, 0, 255, 0.2);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            border: 1px solid var(--secondary);
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+        
+        .type-wrap { color: var(--primary); }
+        .cursor { animation: blink 1s infinite; }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            animation: bounce 2s infinite;
+        }
+        .scroll-indicator span { display: block; font-size: 1.5rem; color: var(--primary); }
+
+        /* --- Pain Points (Interest) --- */
+        .section-pain {
+            padding: 10rem 0;
+            background: radial-gradient(ellipse at center, rgba(255,0,85,0.06) 0%, transparent 70%);
+        }
+
+        .section-pain h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .pain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .pain-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2rem;
+            border-left: 3px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            transition: transform 0.3s ease;
+        }
+        .pain-item:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.05); }
+
+        .pain-item .icon { font-size: 2rem; margin-bottom: 1rem; }
+        .pain-item h3 { margin-bottom: 0.5rem; font-size: 1.4rem; }
+        .pain-item p { color: var(--text-muted); font-size: 0.95rem; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y proximity; /* Soft snapping */
+        }
+
+        /* --- Services --- */
+        .section-services {
+            padding: 10rem 0;
+            background: radial-gradient(ellipse at center, rgba(112, 0, 255, 0.06) 0%, transparent 70%);
+        }
+
+        .service-card {
+            background: rgba(0, 240, 255, 0.05); 
+            padding: 2.2rem; 
+            border-radius: 12px; 
+            border: 1px solid var(--glass-border); 
+            text-align: center;
+            transition: transform 0.3s ease;
+            min-height: 280px; /* Balanced height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .service-card:nth-child(2) { background: rgba(112, 0, 255, 0.05); }
+        .service-card:nth-child(3) { background: rgba(255, 0, 85, 0.05); }
+        
+        .service-card .icon-large { font-size: 2.8rem; margin-bottom: 1.2rem; display: block; }
+        .service-card h3 { font-size: 1.6rem; margin-bottom: 0.8rem; }
+        
+        .service-card:hover { transform: translateY(-7px); }
+
+        /* --- Comparison (Desire) --- */
+        /* Removed as per user request */
+
+        /* --- Chat Duel (The Funny Part) --- */
+        .section-duel { 
+            padding: 10rem 0; 
+            background: radial-gradient(ellipse at center, rgba(0, 240, 255, 0.04) 0%, transparent 70%);
+        }
+        
+        /* ... existing styles ... */
+
+        /* --- Scroll Reveal Animation --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .chat-duel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: stretch; /* Obie karty zawsze równej wysokości */
+        }
+
+        .chat-window {
+            background: #1a1a20;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            min-height: 390px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .chat-window.dumb { border-color: rgba(255, 50, 50, 0.3); }
+        .chat-window.smart { border-color: rgba(0, 240, 255, 0.3); box-shadow: 0 0 20px rgba(0, 240, 255, 0.05); }
+
+        .chat-header {
+            background: #252530;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .chat-body {
+            padding: 1.5rem;
+            flex-grow: 1;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .msg { padding: 10px 15px; border-radius: 8px; max-width: 90%; }
+        .msg.user { align-self: flex-end; background: #333; color: #fff; border-bottom-right-radius: 0; }
+        .msg.bot { align-self: flex-start; color: #ccc; border-bottom-left-radius: 0; line-height: 1.4; }
+        
+        .chat-window.smart .msg.bot { color: var(--success); text-shadow: 0 0 5px rgba(0, 255, 153, 0.3); }
+        .chat-window.dumb .msg.bot { color: #ff8888; }
+
+        .status-bar {
+            background: #111;
+            padding: 5px 15px;
+            font-size: 0.7rem;
+            color: #555;
+            text-align: right;
+        }
+        
+        @media (max-width: 768px) {
+            .chat-duel { grid-template-columns: 1fr; }
+        }
+
+        /* --- Case Studies (Desire) --- */
+        .section-cases { 
+            padding: 10rem 0;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+        }
+        
+        .case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .case-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .case-card:hover {
+            background: rgba(112, 0, 255, 0.05);
+            border-color: var(--secondary);
+            transform: translateY(-5px);
+        }
+
+        .case-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .case-card h3 { margin-bottom: 1rem; font-size: 1.5rem; }
+        .case-card p { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+
+        .case-stats {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .case-stats .stat { font-size: 0.85rem; color: var(--text-muted); }
+        .case-stats .stat span {
+            display: block;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.2rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* --- Calculator --- */
+        .calculator-section { padding: 10rem 0; }
+        
+        .calc-container {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.05);
+        }
+
+        input[type=range] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .money-saved {
+            font-size: 3.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0,240,255,0.4);
+            font-family: 'Space Grotesk', sans-serif;
+            margin-top: 1rem;
+        }
+
+        /* --- Action --- */
+        .section-action {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-ring {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(112,0,255,0.1) 0%, rgba(0,0,0,0) 70%);
+            animation: pulse 5s infinite alternate;
+        }
+
+        .section-action h2 { font-size: 3.5rem; margin-bottom: 2rem; }
+        
+        .offer-highlight {
+            font-size: 1.2rem;
+            color: var(--success);
+            margin: 2rem 0;
+            font-weight: 600;
+            background: rgba(0, 255, 153, 0.1);
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+        }
+
+        .cta-button-large {
+            display: inline-block;
+            background: var(--primary);
+            color: #000;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-decoration: none;
+            font-size: 1.5rem;
+            padding: 2rem 4rem;
+            border-radius: 100px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.3);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .cta-button-large:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 80px rgba(0, 240, 255, 0.6);
+            background: #fff;
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 3rem;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* --- Animations --- */
+        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 0.8; } }
+
+        /* --- Mobile --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .compare-container { grid-template-columns: 1fr; }
+            .money-saved { font-size: 2.5rem; }
+            .cta-button-large { padding: 1.5rem 2rem; font-size: 1.1rem; }
+            .section-action h2 { font-size: 2rem; }
+        }
+
+        /* Snap Alignment */
+        section { scroll-snap-align: center; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <nav>
+        <div class="brand">
+            <img src="logo.png" alt="AI Navigators" class="logo-img">
+            AI <span>NAVIGATORS</span>
+        </div>
+        <a href="#action" class="nav-btn">Audyt 0 PLN</a>
+    </nav>
+
+    <!-- A: ATTENTION -->
+    <section class="hero">
+        <div class="badge">DLA WŁAŚCICIELI MŚP</div>
+        <h1>Twój biznes krwawi.<br>
+            <span class="highlight">Tracisz czas na:</span><br>
+            <span class="type-wrap"></span><span class="cursor">|</span>
+        </h1>
+        <p>Większość firm w Twojej branży zniknie w ciągu 5 lat, bo zignorują AI. <br>Nie bądź jedną z nich. Zmień chaos w cyfrową precyzję.</p>
+        <div class="scroll-indicator" onclick="document.getElementById('interest').scrollIntoView({behavior: 'smooth'})">
+            <span>▼</span> Sprawdź dlaczego
+        </div>
+    </section>
+
+    <!-- I: INTEREST -->
+    <section id="interest" class="section-pain">
+        <div class="content-wrapper">
+            <h2>Dlaczego pracujesz <span style="color: var(--accent)">zbyt ciężko?</span></h2>
+            <div class="pain-grid">
+                <div class="pain-item">
+                    <div class="icon">📉</div>
+                    <h3>Wypalenie Zespołu</h3>
+                    <p>Twoi najlepsi ludzie marnują talent na "klepanie tabelek", zamiast zarabiać dla Ciebie pieniądze.</p>
+                </div>
+                <div class="pain-item">
+                    <div class="icon">🐢</div>
+                    <h3>Powolna Reakcja</h3>
+                    <p>Klient czeka na ofertę 2 dni? Konkurencja z AI wysyła ją w 3 minuty. Kto wygrywa?</p>
+                </div>
+                <div class="pain-item">
+                    <div class="icon">💸</div>
+                    <h3>Niewidzialne Koszty</h3>
+                    <p>Pomyłki przy fakturach, zagubione maile, błędne raporty. To ciche zabójcy Twojej marży.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- S: SERVICES (Explicitly stating what we do for the assignment) -->
+    <section class="section-services">
+        <div class="content-wrapper">
+            <h2 style="text-align: center; margin-bottom: 4rem;">Co wdrażamy?</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="service-card">
+                    <span class="icon-large">🤖</span>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--primary);">Inteligentne Chatboty</h3>
+                    <p style="font-size: 1rem; color: var(--text-muted);">Obsługa klienta 24/7 bez udziału człowieka. Sprzedaż i wsparcie.</p>
+                </div>
+                <div class="service-card">
+                    <span class="icon-large">⚡</span>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--secondary);">Automatyzacja Procesów</h3>
+                    <p style="font-size: 1rem; color: var(--text-muted);">Łączymy systemy (CRM, ERP, Email), aby dane przepływały same.</p>
+                </div>
+                <div class="service-card">
+                    <span class="icon-large">📊</span>
+                    <h3 style="margin-bottom: 0.5rem; color: var(--accent);">Analiza Danych AI</h3>
+                    <p style="font-size: 1rem; color: var(--text-muted);">Wyciąganie wniosków z faktur, raportów i baz danych w sekundy.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SMACZEK: Reality Check (Dumb AI vs Smart AI) -->
+    <section class="section-duel">
+        <div class="content-wrapper">
+            <h2 style="text-align: center; margin-bottom: 3rem;">Nie każde AI jest takie samo</h2>
+            <div class="chat-duel">
+                <!-- Lewa: Zwykły chatbot -->
+                <div class="chat-window dumb">
+                    <div class="chat-header">
+                        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                        <span>Darmowy Chatbot</span>
+                    </div>
+                    <div class="chat-body">
+                        <div class="msg user">Przeanalizuj faktury z tego folderu i podaj sumę VAT.</div>
+                        <div class="msg bot" id="dumbBotType"></div>
+                    </div>
+                    <div class="status-bar" id="dumbStatus">Oczekiwanie...</div>
+                </div>
+
+                <!-- Prawa: AI Navigators -->
+                <div class="chat-window smart">
+                    <div class="chat-header">
+                        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                        <span>Agent AI Navigators</span>
+                    </div>
+                    <div class="chat-body">
+                        <div class="msg user">Przeanalizuj faktury z tego folderu i podaj sumę VAT.</div>
+                        <div class="msg bot" id="smartBotType"></div>
+                    </div>
+                    <div class="status-bar" id="smartStatus">Oczekiwanie...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- D: DESIRE (Case Studies) -->
+    <section class="section-cases">
+        <div class="content-wrapper">
+            <h2 style="text-align: center; margin-bottom: 1rem;">Dowody, nie obietnice</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 4rem;">Zobacz, jak AI Navigators realnie zmienia wyniki finansowe.</p>
+            
+            <div class="case-grid">
+                <div class="case-card">
+                    <div class="case-tag">LOGISTYKA</div>
+                    <h3>Automatyzacja Awizacji</h3>
+                    <p>Wdrożenie agenta AI do obsługi maili transportowych.</p>
+                    <div class="case-stats">
+                        <div class="stat"><span>-85%</span> czasu obsługi</div>
+                        <div class="stat"><span>0</span> pomyłek</div>
+                    </div>
+                </div>
+                <div class="case-card">
+                    <div class="case-tag">E-COMMERCE</div>
+                    <h3>Inteligentny Asystent</h3>
+                    <p>System rekomendacji i obsługi zwrotów działający 24/7.</p>
+                    <div class="case-stats">
+                        <div class="stat"><span>+22%</span> konwersji</div>
+                        <div class="stat"><span>3.5h</span>/dzień oszczędności</div>
+                    </div>
+                </div>
+                <div class="case-card">
+                    <div class="case-tag">FINANSE</div>
+                    <h3>Analiza Faktur</h3>
+                    <p>Automatyczne księgowanie i weryfikacja dokumentów kosztowych.</p>
+                    <div class="case-stats">
+                        <div class="stat"><span>1200</span> faktur/h</div>
+                        <div class="stat"><span>ROI</span> po 2 miesiącach</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- D: DESIRE (Calculator - The Proof) -->
+    <section id="calculator" class="calculator-section">
+        <div class="content-wrapper">
+            <h2 style="text-align: center; margin-bottom: 1rem;">Liczby nie kłamią</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 3rem;">Zobacz, ile kapitału odzyskasz w pierwszym roku współpracy.</p>
+            
+            <div class="calc-container">
+                <label>Liczba pracowników biurowych:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span id="emplVal" style="color: var(--primary); font-weight: 700;">5</span>
+                </div>
+                <input type="range" min="1" max="50" value="5" id="emplRange">
+
+                <div style="margin-top: 2rem;"></div>
+
+                <label>Godzin dziennie marnowanych na powtarzalne zadania:</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span id="hoursVal" style="color: var(--primary); font-weight: 700;">2 h</span>
+                </div>
+                <input type="range" min="0.5" max="8" step="0.5" value="2" id="hoursRange">
+
+                <div class="result-box">
+                    <p style="text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px;">Twój potencjalny zysk roczny:</p>
+                    <div class="money-saved" id="totalSaved">0 PLN</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- A: ACTION -->
+    <section id="action" class="section-action">
+        <div class="glow-ring"></div>
+        <div class="content-wrapper" style="position: relative; z-index: 2;">
+            <h2>Przestań zgadywać. <br>Zacznij automatyzować.</h2>
+            <p>Nie sprzedajemy marzeń. Sprzedajemy systemy.</p>
+            <p class="offer-highlight">Tylko w tym miesiącu: Wstępny Audyt Procesów (wartość 1500 PLN) za 0 PLN.</p>
+            
+            <a href="mailto:kontakt@ainavigators.pl?subject=Zgłoszenie na Audyt" class="cta-button-large">
+                Zarezerwuj Audyt
+                <span style="display: block; font-size: 0.8rem; margin-top: 5px; opacity: 0.8; font-weight: 400;">Bez zobowiązań. 100% konkretów.</span>
+            </a>
+            
+            <p style="margin-top: 2rem; font-size: 0.85rem; color: var(--text-muted);">
+                Do końca miesiąca pozostało miejsc na audyt: <span style="color: var(--primary); font-weight: bold;">3</span>
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="brand" style="justify-content: center; margin-bottom: 1rem; gap: 15px;">
+            <img src="logo.png" alt="AI Navigators" class="logo-img" style="height: 50px;">
+            AI <span>NAVIGATORS</span>
+        </div>
+        <p style="margin-bottom: 1rem;">&copy; 2026 AI Navigators Sp. z o.o. Technologia dla liderów.</p>
+        <p style="font-size: 0.75rem; color: #555;">
+            ul. Cybernetyki 2.0, 00-001 Warszawa <br>
+            NIP: 525-000-00-00 | REGON: 140000000 | KRS: 0000123456
+        </p>
+    </footer>
+
+    <script>
+        // --- Canvas Background (Network Effect) ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+                particles.forEach(p2 => {
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 150) {
+                        ctx.strokeStyle = `rgba(112, 0, 255, ${1 - dist/150})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // --- Typewriter Effect (Typing & Deleting) ---
+        const texts = ["Papierologię", "Błędne Dane", "Rutynę", "Gaszenie Pożarów"];
+        let count = 0;
+        let index = 0;
+        let currentText = "";
+        let letter = "";
+        let isDeleting = false;
+
+        (function type() {
+            if (count === texts.length) { count = 0; }
+            currentText = texts[count];
+
+            if (isDeleting) {
+                // Delete char
+                letter = currentText.slice(0, --index);
+            } else {
+                // Add char
+                letter = currentText.slice(0, ++index);
+            }
+
+            document.querySelector(".type-wrap").textContent = letter;
+
+            // Typing Speed Control
+            let typeSpeed = 100; // Normal typing speed
+            if (isDeleting) { typeSpeed = 50; } // Deleting is faster
+
+            if (!isDeleting && letter.length === currentText.length) {
+                // Word finished - wait before deleting
+                typeSpeed = 2000; 
+                isDeleting = true;
+            } else if (isDeleting && letter.length === 0) {
+                // Word deleted - move to next
+                isDeleting = false;
+                count++;
+                typeSpeed = 500; // Pause before start typing next
+            }
+
+            setTimeout(type, typeSpeed);
+        }());
+
+        // --- ROI Calculator ---
+        const emplRange = document.getElementById('emplRange');
+        const hoursRange = document.getElementById('hoursRange');
+        const emplVal = document.getElementById('emplVal');
+        const hoursVal = document.getElementById('hoursVal');
+        const totalSaved = document.getElementById('totalSaved');
+
+        function calculate() {
+            const employees = parseInt(emplRange.value);
+            const hours = parseFloat(hoursRange.value);
+            const hourlyRate = 60; 
+            const workDays = 251; 
+
+            emplVal.textContent = employees;
+            hoursVal.textContent = hours + " h";
+
+            const savings = employees * hours * hourlyRate * workDays;
+            
+            totalSaved.textContent = new Intl.NumberFormat('pl-PL', { 
+                style: 'currency', 
+                currency: 'PLN',
+                maximumFractionDigits: 0
+            }).format(savings);
+        }
+
+        emplRange.addEventListener('input', calculate);
+        hoursRange.addEventListener('input', calculate);
+        calculate(); 
+
+        // --- Chat Duel Animation (Randomized Scenarios) ---
+        const scenarios = [
+            {
+                // 1. Finanse
+                prompt: "Przeanalizuj faktury z tego folderu i podaj sumę VAT.",
+                dumb: "Jako model językowy nie mam oczu, ale... Czekaj. Faktura to dokument historyczny wywodzący się z Mezopotamii. Czy wiesz, że Sumerowie używali glinianych tabliczek? Niestety nie mogę otworzyć pliku PDF...",
+                smart: "[ANALIZA ZAKOŃCZONA]\n> Przetworzono plików: 14\n> Wykryto duplikaty: 2\n--------------------------\nSUMA NETTO: 45,230.00 PLN\nSUMA VAT:   10,402.90 PLN\n--------------------------\n[Pobierz Excel] [Wyślij do Księgowej]",
+                dumbStats: "Przetwarzanie: 61.4s | Dokładność: 2%",
+                smartStats: "Przetwarzanie: 0.4s | Dokładność: 100%"
+            },
+            {
+                // 2. Obsługa Klienta
+                prompt: "Klient jest wściekły o opóźnienie. Napisz przeprosiny i daj rabat.",
+                dumb: "Siema byczku! Sorki że paczka nie doszła, kurier pewnie zgłodniał i zjadł. Masz tu emotkę na pocieszenie: 🐢. Nie gniewaj się, to tylko biznes.",
+                smart: "Szanowny Kliencie,\n\nNajmocniej przepraszamy za opóźnienie zamówienia #9021. Wynika ono z błędu sortowni.\n\nJako rekompensatę przesyłamy kod rabatowy -15% na kolejne zakupy: PRZEPRASZAMY15.\n\nZ poważaniem,\nZespół Obsługi",
+                dumbStats: "Empatia: 0% | Ryzyko utraty klienta: 100%",
+                smartStats: "Analiza sentymentu: Pozytywna | Czas: 0.3s"
+            },
+            {
+                // 3. Strategia Sprzedaży
+                prompt: "Mamy spadek sprzedaży czapek. Co robić w Q3?",
+                dumb: "Czapki są okrągłe. Ziemia też jest okrągła. Może spróbujmy sprzedawać czapki pingwinom na Madagaskarze? Tam jest zimno... a nie, czekaj, tam są lemury.",
+                smart: "[ANALIZA DANYCH Q3]\nTrend: Spadek popytu na nakrycia głowy (-12% r/r).\nREKOMENDACJA:\n1. Pivot na akcesoria sportowe (opaski, bandany) -> Wzrost w branży o 22%.\n2. Kampania wyprzedażowa 'Last Minute' dla obecnych stanów magazynowych.",
+                dumbStats: "Logika: Brak danych | IQ: Wątpliwe",
+                smartStats: "Analiza rynku: 4TB danych | Trafność: 98%"
+            },
+            {
+                // 4. HR / Rekrutacja
+                prompt: "Znajdź kandydata na Senior Python Dev z tych 500 CV.",
+                dumb: "Przeglądam... O! Ten kandydat ma w CV zdjęcie z kotem. Lubię koty. Koty łapią myszy, a programiści używają myszek. ZATRUDNIONY! Resztę CV usunąłem, bo zajmowały miejsce.",
+                smart: "[WYNIK SKANOWANIA]\nPrzeanalizowano: 500 CV\nOdrzucono (brak exp): 420\n\nTOP 3 KANDYDATÓW:\n1. Jan K. (10 lat exp, Django, ML) - Dopasowanie: 98%\n2. Anna M. (8 lat exp, Tech Lead) - Dopasowanie: 95%\n3. Piotr Z. (Ex-Google) - Dopasowanie: 92%\n\n> Wysłano zaproszenia na rozmowę.",
+                dumbStats: "Dyskryminacja: Wykryto | Koszt błędu: Wysoki",
+                smartStats: "Oszczędność czasu: 40h | Dopasowanie: Wysokie"
+            },
+            {
+                // 5. Prawo / RODO
+                prompt: "Czy ten formularz zapisu do newslettera jest zgodny z RODO?",
+                dumb: "RODO... Rodos? Piękna wyspa. Jeśli chodzi o prawo, to obowiązuje Kodeks Piratów: 'Kto daje i odbiera, ten się w piekle poniewiera'. Więc nie oddawaj danych. Ahoj!",
+                smart: "[ANALIZA PRAWNA]\nStatus: ⚠️ WYMAGA POPRAWKI\n\n1. Brak checkboxa zgody (wymagane art. 6 RODO).\n2. Klauzula informacyjna jest ukryta (musi być widoczna).\n3. Brak linku do Polityki Prywatności.\n\n> Generuję poprawny kod formularza...",
+                dumbStats: "Ryzyko kary UODO: 20 mln EUR | Wiedza: 0%",
+                smartStats: "Weryfikacja: Art. 6 i 13 RODO | Bezpieczeństwo: 100%"
+            },
+            {
+                // 6. Marketing / Social Media
+                prompt: "Napisz post na LinkedIn o wdrożeniu AI w logistyce.",
+                dumb: "#AI #Logistyka #Super #Wow #Firma #Sukces #Pieniądze #Hasztag #LubięPlacki #Innowacja. Czy to wystarczy? Mogę dodać więcej emotek ognia: 🔥🔥🔥🔥🔥",
+                smart: "🚀 Jak zredukowaliśmy koszty logistyki o 30% dzięki AI?\n\nTradycyjna spedycja to tysiące telefonów i maili. Nasz nowy agent AI:\n✅ Automatyzuje awizacje\n✅ Optymalizuje trasy w czasie rzeczywistym\n\nEfekt? Szybsze dostawy i mniej błędów. Chcesz wiedzieć jak? Link w komentarzu 👇",
+                dumbStats: "Styl: Spam | Zaangażowanie: Żenujące",
+                smartStats: "Styl: Ekspercki | Przewidywany zasięg: Wysoki"
+            },
+            {
+                // 7. IT Support
+                prompt: "Serwer produkcyjny padł, błąd 503. Co robić?",
+                dumb: "Spokojnie. Oddychaj. Czy próbowałeś go przytulić? Maszyny też mają uczucia. Jeśli to nie zadziała, proponuję uderzyć lekko młotkiem w obudowę. U mnie działa.",
+                smart: "[DIAGNOSTYKA SYSTEMU]\nKOD BŁĘDU: 503 Service Unavailable\nPRZYCZYNA: Przeciążenie puli połączeń (Connection Pool Exhausted).\n\nDZIAŁANIE AUTOMATYCZNE:\n1. Restart usługi Nginx... [OK]\n2. Zwiększenie limitu workerów... [OK]\n3. Skalowanie instancji AWS... [W TOKU]\n\n> System wraca do normy.",
+                dumbStats: "Rozwiązanie: Przemoc fizyczna | Skutek: Pożar",
+                smartStats: "Reakcja: 0.1s | Uptime: Przywrócono"
+            }
+        ];
+
+        // Pick random scenario
+        const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+
+        // Update User Prompt in DOM
+        document.querySelectorAll('.msg.user').forEach(el => el.textContent = randomScenario.prompt);
+
+        const dumbText = randomScenario.dumb;
+        const smartText = randomScenario.smart;
+        
+        const dumbEl = document.getElementById('dumbBotType');
+        const smartEl = document.getElementById('smartBotType');
+        const dumbStatus = document.getElementById('dumbStatus');
+        const smartStatus = document.getElementById('smartStatus');
+        let duelStarted = false;
+
+        function typeWriter(element, text, speed, isSmart, onComplete) {
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    if (text.charAt(i) === '\n') {
+                        element.innerHTML += '<br>';
+                    } else {
+                        element.innerHTML += text.charAt(i);
+                    }
+                    i++;
+                    
+                    let delay = speed;
+                    if (!isSmart) {
+                        delay += Math.random() * 150; 
+                    }
+                    setTimeout(type, delay);
+                } else if (onComplete) {
+                    onComplete();
+                }
+            }
+            type();
+        }
+
+        const duelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !duelStarted) {
+                    duelStarted = true;
+                    
+                    // Dumb Bot Start
+                    dumbStatus.textContent = "Pisze... (bardzo powoli)";
+                    typeWriter(dumbEl, dumbText, 50, false, () => {
+                        dumbStatus.textContent = randomScenario.dumbStats;
+                    });
+                    
+                    // Smart Bot Start
+                    setTimeout(() => {
+                        smartStatus.textContent = "Analizowanie danych...";
+                        typeWriter(smartEl, smartText, 5, true, () => {
+                            smartStatus.textContent = randomScenario.smartStats;
+                        });
+                    }, 500);
+                }
+            });
+        }, { threshold: 0.7 });
+
+        duelObserver.observe(document.querySelector('.section-duel'));
+
+        // --- Scroll Reveal Logic ---
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        // Auto-add reveal class to major elements if not present, then observe
+        document.querySelectorAll('section h2, .pain-item, .chat-window, .case-card, .calc-container, .service-card').forEach(el => {
+            el.classList.add('reveal');
+            revealObserver.observe(el);
+        });
+    </script>
+</body>
+</html>
