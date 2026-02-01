@@ -343,7 +343,7 @@
         }
 
         /* --- Calculator --- */
-        .calculator-section { padding: 10rem 0; }
+        .calculator-section { padding: 10rem 0 18rem 0; }
         
         .calc-container {
             background: var(--bg-card);
@@ -401,6 +401,8 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            padding-top: 10rem; /* Push content down to show headline */
+            padding-bottom: 3rem; /* Reduced space before footer */
         }
 
         .glow-ring {
@@ -441,7 +443,8 @@
             font-size: 0.95rem;
             transition: 0.3s;
         }
-        .form-select { cursor: pointer; appearance: none; }
+        .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300F0FF' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: calc(100% - 1rem) center; }
+        .form-select option { background: #1a1a20; color: #fff; }
         
         .form-input:focus, .form-select:focus {
             border-color: var(--primary);
@@ -470,6 +473,17 @@
             background: #fff;
             box-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
             transform: translateY(-2px);
+        }
+
+        .remaining-slots {
+            margin-top: 2.5rem;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
         }
 
         .offer-highlight {
@@ -569,7 +583,7 @@
                 box-shadow: 0 0 50px rgba(0, 240, 255, 0.2); 
                 border: 1px solid var(--glass-border);
             ">
-                <video loop muted playsinline style="width: 100%; display: block; background: #000;">
+                <video autoplay muted playsinline style="width: 100%; display: block; background: #000;">
                     <source src="video/promo.mp4" type="video/mp4">
                     Twoja przeglądarka nie obsługuje wideo.
                 </video>
@@ -732,9 +746,14 @@
         <div class="content-wrapper" style="position: relative; z-index: 2;">
             <h2>Przestań zgadywać. <br>Zacznij automatyzować.</h2>
             <p>Nie sprzedajemy marzeń. Sprzedajemy systemy.</p>
-            <p class="offer-highlight">Tylko w tym miesiącu: Wstępny Audyt Procesów (wartość 1500 PLN) za 0 PLN.</p>
             
-            <div class="audit-form-container">
+            <p class="remaining-slots" style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                Do końca miesiąca pozostało miejsc na audyt: <span style="color: var(--primary); font-weight: bold;">3</span>
+            </p>
+
+            <p class="offer-highlight" style="margin-top: 0.5rem; margin-bottom: 2.5rem;">Tylko w tym miesiącu: Wstępny Audyt Procesów (wartość 1500 PLN) za 0 PLN.</p>
+            
+            <div class="audit-form-container" style="margin-top: 1rem;">
                 <h3 style="text-align: center; margin-bottom: 1.5rem; color: var(--text-main);">Rezerwacja Terminu</h3>
                 <form id="auditForm">
                     <div class="form-group">
@@ -768,10 +787,6 @@
                     </p>
                 </form>
             </div>
-            
-            <p style="margin-top: 2rem; font-size: 0.85rem; color: var(--text-muted);">
-                Do końca miesiąca pozostało miejsc na audyt: <span style="color: var(--primary); font-weight: bold;">3</span>
-            </p>
         </div>
     </section>
 
