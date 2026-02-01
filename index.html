@@ -476,6 +476,27 @@
             transform: translateY(-2px);
         }
 
+        #form-status {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        #form-status.success {
+            display: block;
+            background: rgba(0, 255, 153, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        #form-status.error {
+            display: block;
+            background: rgba(255, 0, 85, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
         .remaining-slots {
             margin-top: 2.5rem;
             font-size: 1rem;
@@ -757,35 +778,36 @@
             <div class="audit-form-container" style="margin-top: 1rem;">
                 <h3 style="text-align: center; margin-bottom: 1.5rem; color: var(--text-main);">Rezerwacja Terminu</h3>
                 <form id="auditForm">
+                    <!-- Tu wklej swój klucz z Web3Forms -->
+                    <input type="hidden" name="access_key" value="219dda74-0a2a-42ae-a559-05acc95a5dbb">
+                    
                     <div class="form-group">
                         <label class="form-label">Imię i Nazwisko *</label>
-                        <input type="text" class="form-input" id="formName" required placeholder="np. Jan Kowalski">
+                        <input type="text" name="name" class="form-input" id="formName" required placeholder="np. Jan Kowalski">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Firma</label>
-                        <input type="text" class="form-input" id="formCompany" placeholder="np. Tech Sp. z o.o.">
+                        <input type="text" name="company" class="form-input" id="formCompany" placeholder="np. Tech Sp. z o.o.">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email służbowy *</label>
-                        <input type="email" class="form-input" id="formEmail" required placeholder="np. jan@firma.pl">
+                        <input type="email" name="email" class="form-input" id="formEmail" required placeholder="np. jan@firma.pl">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Telefon</label>
-                        <input type="tel" class="form-input" id="formPhone" placeholder="np. 500 600 700">
+                        <input type="tel" name="phone" class="form-input" id="formPhone" placeholder="np. 500 600 700">
                     </div>
                      <div class="form-group">
                         <label class="form-label">Wielkość zespołu</label>
-                        <select class="form-select" id="formSize">
+                        <select class="form-select" name="team_size" id="formSize">
                             <option value="1-10">1-10 osób</option>
                             <option value="11-50">11-50 osób</option>
                             <option value="51-200">51-200 osób</option>
                             <option value="200+">Powyżej 200</option>
                         </select>
                     </div>
-                    <button type="submit" class="submit-btn">Zarezerwuj Audyt</button>
-                    <p style="text-align: center; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); opacity: 0.7;">
-                        Klikając, otworzysz gotową wiadomość w swoim programie pocztowym.
-                    </p>
+                    <button type="submit" class="submit-btn" id="submitBtn">Zarezerwuj Audyt</button>
+                    <div id="form-status"></div>
                 </form>
             </div>
         </div>
@@ -933,21 +955,56 @@
         hoursRange.addEventListener('input', calculate);
         calculate(); 
 
-        // --- Audit Form Handler ---
-        document.getElementById('auditForm').addEventListener('submit', function(e) {
+        // --- Audit Form Handler (AJAX) ---
+        const form = document.getElementById('auditForm');
+        const status = document.getElementById('form-status');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const name = document.getElementById('formName').value;
-            const company = document.getElementById('formCompany').value || "Brak nazwy firmy";
-            const email = document.getElementById('formEmail').value;
-            const phone = document.getElementById('formPhone').value || "Nie podano";
-            const size = document.getElementById('formSize').value;
+            const formData = new FormData(form);
+            const object = Object.fromEntries(formData);
+            const json = JSON.stringify(object);
 
-            const subject = `Zgłoszenie na Audyt: ${company} (${name})`;
-            const body = `Dzień dobry,\n\nChciałbym zarezerwować darmowy audyt AI dla mojej firmy.\n\n--- DANE KONTAKTOWE ---\nImię i Nazwisko: ${name}\nFirma: ${company}\nEmail: ${email}\nTelefon: ${phone}\nWielkość zespołu: ${size}\n\nProszę o kontakt w celu ustalenia terminu spotkania.\n\nPozdrawiam,\n${name}`;
+            status.textContent = "Wysyłanie...";
+            status.className = "success";
+            status.style.display = "block";
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = "0.5";
 
-            // Open mail client
-            window.location.href = `mailto:kontakt@ainavigators.pl?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: json
+            })
+            .then(async (response) => {
+                let json = await response.json();
+                if (response.status == 200) {
+                    status.className = "success";
+                    status.textContent = "Dziękujemy! Twoje zgłoszenie zostało wysłane.";
+                    form.reset();
+                } else {
+                    console.log(response);
+                    status.className = "error";
+                    status.textContent = "Błąd: " + json.message;
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                status.className = "error";
+                status.textContent = "Coś poszło nie tak. Spróbuj później.";
+            })
+            .then(function() {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = "1";
+                setTimeout(() => {
+                    status.style.display = "none";
+                }, 5000);
+            });
         });
 
         // --- Chat Duel Animation (Randomized Scenarios) ---
