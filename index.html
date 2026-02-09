@@ -59,10 +59,10 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .brand { font-size: 1.3rem; font-weight: 700; letter-spacing: -1px; display: flex; align-items: center; gap: 12px; }
+        .brand { font-size: 1.3rem; font-weight: 700; letter-spacing: -1px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .brand span { color: var(--primary); }
-        .logo-img { height: 65px; width: auto; transition: 0.4s ease; }
-        .logo-img:hover { filter: drop-shadow(0 0 15px var(--primary)); transform: scale(1.05); }
+        .logo-img { height: 65px; width: auto; transition: 0.8s ease-in-out; }
+        .logo-img:hover { filter: drop-shadow(0 0 15px var(--primary)); transform: scale(1.1) rotate(360deg); }
 
         .nav-btn {
             border: 1px solid var(--primary);
@@ -156,14 +156,26 @@
 
         .pain-item {
             background: rgba(255, 255, 255, 0.03);
-            padding: 2rem;
-            border-left: 3px solid var(--accent);
-            border-radius: 0 10px 10px 0;
-            transition: transform 0.3s ease;
+            padding: 2.5rem;
+            border-left: 4px solid var(--accent); /* Adjusted for visual consistency */
+            border-radius: 20px; /* More rounded corners */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px); /* Liquid glass effect */
+            border-right: 1px solid rgba(255, 255, 255, 0.05); /* Added for full border */
+            border-top: 1px solid rgba(255, 255, 255, 0.05); /* Added for full border */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* Added for full border */
+            position: relative; /* Needed for potential future pseudo-elements */
+            overflow: hidden; /* Ensures blur doesn't leak */
         }
-        .pain-item:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.05); }
+        .pain-item:hover { 
+            transform: translateY(-10px); 
+            background: rgba(255, 0, 85, 0.08); /* Accent colored background on hover */
+            border-color: var(--accent); /* Accent border on hover */
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.15); /* Glow effect */
+        }
 
-        .pain-item .icon { font-size: 2rem; margin-bottom: 1rem; }
+        .pain-item .icon { font-size: 2.5rem; margin-bottom: 1rem; transition: 0.3s ease-in-out; }
+        .pain-item:hover .icon { font-size: 3rem; }
         .pain-item h3 { margin-bottom: 0.5rem; font-size: 1.4rem; }
         .pain-item p { color: var(--text-muted); font-size: 0.95rem; }
 
@@ -179,24 +191,43 @@
         }
 
         .service-card {
-            background: rgba(0, 240, 255, 0.05); 
+            background: rgba(255, 255, 255, 0.03); 
             padding: 2.2rem; 
-            border-radius: 12px; 
+            border-radius: 20px; 
             border: 1px solid var(--glass-border); 
             text-align: center;
-            transition: transform 0.3s ease;
-            min-height: 280px; /* Balanced height */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 280px; 
             display: flex;
             flex-direction: column;
             justify-content: center;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
         }
-        .service-card:nth-child(2) { background: rgba(112, 0, 255, 0.05); }
-        .service-card:nth-child(3) { background: rgba(255, 0, 85, 0.05); }
         
-        .service-card .icon-large { font-size: 2.8rem; margin-bottom: 1.2rem; display: block; }
+        .service-card:nth-child(1):hover { 
+            background: rgba(0, 240, 255, 0.08); 
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+            transform: translateY(-10px);
+        }
+        .service-card:nth-child(2):hover { 
+            background: rgba(112, 0, 255, 0.08); 
+            border-color: var(--secondary);
+            box-shadow: 0 0 30px rgba(112, 0, 255, 0.15);
+            transform: translateY(-10px);
+        }
+        .service-card:nth-child(3):hover { 
+            background: rgba(255, 0, 85, 0.08); 
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.15);
+            transform: translateY(-10px);
+        }
+        
+        .service-card .icon-large { font-size: 2.8rem; margin-bottom: 1.2rem; display: block; transition: 0.3s; }
+        .service-card:hover .icon-large { transform: scale(1.2); }
         .service-card h3 { font-size: 1.6rem; margin-bottom: 0.8rem; }
-        
-        .service-card:hover { transform: translateY(-7px); }
 
         /* --- Comparison (Desire) --- */
         /* Removed as per user request */
@@ -572,7 +603,7 @@
     <canvas id="bgCanvas"></canvas>
 
     <nav>
-        <div class="brand">
+        <div class="brand" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
             <img src="logo.png" alt="AI Navigators" class="logo-img">
             AI <span>NAVIGATORS</span>
         </div>
@@ -692,6 +723,10 @@
                     <div class="status-bar" id="smartStatus">Oczekiwanie...</div>
                 </div>
             </div>
+            
+            <div style="text-align: center; margin-top: 4rem;">
+                <a href="#calculator" class="cta-button-large" style="font-size: 1.1rem; padding: 1.5rem 3rem;">Sprawdź ile tracisz</a>
+            </div>
         </div>
     </section>
 
@@ -756,7 +791,7 @@
 
                 <div class="result-box">
                     <p style="text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px;">Twój potencjalny zysk roczny:</p>
-                    <div class="money-saved" id="totalSaved">0 PLN</div>
+                    <div class="money-saved" id="totalSaved">...</div>
                 </div>
             </div>
         </div>
@@ -814,7 +849,7 @@
     </section>
 
     <footer>
-        <div class="brand" style="justify-content: center; margin-bottom: 1rem; gap: 15px;">
+        <div class="brand" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="justify-content: center; margin-bottom: 1rem; gap: 15px;">
             <img src="logo.png" alt="AI Navigators" class="logo-img" style="height: 50px;">
             AI <span>NAVIGATORS</span>
         </div>
